@@ -9,7 +9,7 @@ authors = ["Fergus In London <fergus@fergus.london>"]
 [tool.poetry.dependencies]
 python = "^3.11"
 tapo = "^0.9"
-prometheus-client = "^0.13.1"
+prometheus-client = "^0.25.0"
 click = "^8.0.4"
 loguru = "^0.6.0"
 PyYAML = "^6.0"
