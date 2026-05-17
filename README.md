@@ -2,6 +2,8 @@
 
 Exports energy consumption data from [Tapo P110](https://amzn.to/3FsCgjn) smart devices to Prometheus, allowing monitoring and visualisation in Grafana.
 
+> Fork of [PovilasID/P110-Exporter](https://github.com/PovilasID/P110-Exporter). Migrated from PyP100 to the [`tapo`](https://github.com/mihai-dinculescu/tapo) library (better maintained, pre-built multi-arch wheels) and adds a `tapo_p110_previous_month_energy_wh` metric using the device's monthly history API.
+
 ![Example Grafana Dashboard](https://i.imgur.com/DxLQgKr.png)
 
 ## Startup using docker
@@ -13,7 +15,7 @@ version: '3'
 
 services:
   tapo-P110-exporter:
-    image: povilasid/p110-exporter
+    image: ghcr.io/jhofer-cloud/p110-exporter:0.3.0
     volumes:
        - ./tapo.yaml:/app/tapo.yaml:ro
     ports:
@@ -22,8 +24,8 @@ services:
       - TAPO_EMAIL=YOUR@EMAIL.COM
       - TAPO_PASSWORD=CHANGE_ME
       - PORT=9333                 # (optional)
-      - MAX_RETRY_COUNT=3         # (optional) Default is 3 but if set to '0' will not stop trying to reach the device
-      - DEVICES=study=192.168.0.1:80,living_room=192.168.0.2:80 # (file overrride) if set devices are set form it not the file
+      - MAX_RETRY_COUNT=3         # (optional) Default is 3; '0' = retry forever
+      - DEVICES=study:192.168.0.1,living_room:192.168.0.2 # (file override) if set, devices are read from here instead of the file
 ```
 Create tapo.yaml and list P110 ips/names that exporter will be able to reach them.
 You can check it in the Tapo App -> the plug -> gear in top right -> "Device info": IP address OR in your router Wifi router DHCP leases) tip: make a lease static
@@ -48,10 +50,10 @@ scrape_configs:
 ```
 Import Grafana dashboard (JSON) - Energy monitoring-1664376150978.json for latest update, or just import by pasting [id 17104](https://grafana.com/grafana/dashboards/17104-energy-monitoring/)
 
-### Building from srouce
+### Building from source
 ```console
-git clone https://github.com/PovilasID/P110-Exporter.git
-cd TP110-Exporter
+git clone https://github.com/JHOFER-Cloud/P110-Exporter.git
+cd P110-Exporter
 docker build -t p110-exporter .
 ```
 Create tapo.yaml as above
@@ -116,10 +118,14 @@ tapo_p110_today_energy_wh{ip_address="192.168.1.183",room="living_room"} 187.0
 # TYPE tapo_p110_month_energy_wh gauge
 tapo_p110_month_energy_wh{ip_address="192.168.1.102",room="study"} 2735.0
 tapo_p110_month_energy_wh{ip_address="192.168.1.183",room="living_room"} 2705.0
-# HELP tapo_p110_power_consumption_w Current power consumption for TP-Link TAPO P110 Smart Socket. (Watts)
+# HELP tapo_p110_power_consumption_w Current power consumption for TP-Link TAPO P110 Smart Socket. (milliwatts; divide by 1000 for watts)
 # TYPE tapo_p110_power_consumption_w gauge
 tapo_p110_power_consumption_w{ip_address="192.168.1.102",room="study"} 82927.0
 tapo_p110_power_consumption_w{ip_address="192.168.1.183",room="living_room"} 12118.0
+# HELP tapo_p110_previous_month_energy_wh Energy consumed by the TP-Link TAPO P110 Smart Socket during the previous calendar month. (Watt-hours)
+# TYPE tapo_p110_previous_month_energy_wh gauge
+tapo_p110_previous_month_energy_wh{ip_address="192.168.1.102",room="study"} 25478.0
+tapo_p110_previous_month_energy_wh{ip_address="192.168.1.183",room="living_room"} 24102.0
 ```
 
 ## Configuration
@@ -135,7 +141,7 @@ devices:
 
 ## TODO
 
-- [ ] Migrate from PyP100 to https://github.com/petretiandrea/plugp100 (Current Library is not very well maintained, so there are no updates or long dealays then there are breaking firmware changes)
+- [x] ~~Migrate from PyP100 to https://github.com/petretiandrea/plugp100~~ — migrated to [`tapo`](https://github.com/mihai-dinculescu/tapo) instead (more active maintenance, pre-built multi-arch wheels, typed `get_energy_data` API for historical reads).
 
 ## Disclaimer
 This is meant as an alternative independent way to monitor. However, if you are using home automation Home Assistant has HACS integration that is well maintained and if you finda cheap tastoma hardware it better to use that to avoid breaking changes.
