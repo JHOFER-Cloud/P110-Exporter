@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "tplinkmon"
-version = "0.0.1"
+version = "0.2.0"
 description = ""
 authors = ["Fergus In London <fergus@fergus.london>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-PyP100 = "^0.0.18"
+python = "^3.11"
+tapo = "^0.9"
 prometheus-client = "^0.13.1"
 click = "^8.0.4"
 loguru = "^0.6.0"
