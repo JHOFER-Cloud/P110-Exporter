@@ -1,20 +1,21 @@
-FROM python:3.13.5-slim-bullseye AS builder
-RUN apt-get update; apt-get -y upgrade; apt-get clean; apt-get install binutils git -y
+FROM python:3.13.5-slim-bookworm
 
-# Default ENVS
-ENV PORT=9333
-ENV MAX_RETRY_COUNT=3 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=9333 \
+    MAX_RETRY_COUNT=3
 
-RUN pip3 install --no-cache-dir PyInstaller loguru prometheus_client click pyyaml
-RUN pip3 install git+https://github.com/almottier/TapoP100.git@main
-
-
-COPY . /app
 WORKDIR /app
 
-RUN python3 -m PyInstaller main.py --onefile --hidden-import loguru --hidden-import prometheus_client --hidden-import PyP100
+COPY pyproject.toml ./
+RUN pip install poetry==1.8.3 && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-root --no-interaction --no-ansi
 
-FROM python:3.13.5-slim-bullseye
-COPY --from=builder /app/dist /app/dist
-EXPOSE $PORT
-CMD /app/dist/main --tapo-email=$TAPO_EMAIL --tapo-password=$TAPO_PASSWORD --config-file=/app/tapo.yaml --prometheus-port=$PORT
+COPY . /app
+
+EXPOSE 9333
+
+CMD ["sh", "-c", "exec python main.py --tapo-email=$TAPO_EMAIL --tapo-password=$TAPO_PASSWORD --config-file=/app/tapo.yaml --prometheus-port=$PORT"]
