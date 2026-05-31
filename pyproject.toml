@@ -11,7 +11,7 @@ python = "^3.11"
 tapo = "^0.9"
 prometheus-client = "^0.13.1"
 click = "^8.0.4"
-loguru = "^0.6.0"
+loguru = "^0.7.0"
 PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
